@@ -1,148 +1,248 @@
-# ionic-scroll
- 
- Bug video placed @ https://drive.google.com/drive/folders/1oZPFO11jkAwsg7faCQHIxpz7Ua4-qKQV?usp=sharing
+mport * as Highcharts from 'highcharts';
 
 
+const App: React.FC = () => {
+
+  const renderBarAreaChart = () => {
+    let chart: any = null;
+
+    const mouseUpEvent = function () {
+      chart.tooltip.hide();
+      chart.xAxis[0].hideCrosshair();
+    };
 
 
-const data = {
-  labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
-  datasets: [
-    {
-      data: [12, 19, 3, 5, 2, 3],
-      backgroundColor: [
-        "rgba(255, 99, 132, 0.2)",
-        "rgba(54, 162, 235, 0.2)",
-        "rgba(255, 206, 86, 0.2)",
-        "rgba(75, 192, 192, 0.2)",
-        "rgba(153, 102, 255, 0.2)",
-        "rgba(255, 159, 64, 0.2)"
-      ],
-      borderColor: [
-        "rgba(255, 99, 132, 1)",
-        "rgba(54, 162, 235, 1)",
-        "rgba(255, 206, 86, 1)",
-        "rgba(75, 192, 192, 1)",
-        "rgba(153, 102, 255, 1)",
-        "rgba(255, 159, 64, 1)"
-      ],
-      borderWidth: 1
-    }
-  ]
-};
-
-const App = () => {
-  const [tooltipValue, setTooltipValue] = useState({ value: "", x: 0 });
-  const canvasref = useRef(null);
-  let myChart:any;
-  useEffect(() => {
-    const ctx = document.getElementById("myChart") as HTMLCanvasElement;
-    Chart.defaults.LineWithLine = Chart.defaults.line;
-    Chart.controllers.LineWithLine = Chart.controllers.line.extend({
-    draw: function(ease:any) {
-        Chart.controllers.line.prototype.draw.call(this, ease);
-
-        if (this.chart.tooltip._active && this.chart.tooltip._active.length) {
-          console.log('hiiiiiii');
-          var activePoint = this.chart.tooltip._active[0],
-              ctx = this.chart.ctx,
-              x = activePoint.tooltipPosition().x,
-              topY = this.chart.scales['y-axis-0'].top,
-              bottomY = this.chart.scales['y-axis-0'].bottom;
-
-          // draw line
-          ctx.save();
-          ctx.beginPath();
-          ctx.moveTo(x, 0);
-          ctx.lineTo(x, bottomY);
-          ctx.lineWidth = 2;
-          ctx.strokeStyle = '#07C';
-          ctx.stroke();
-          ctx.restore();
-        }
-    }
-});
-
-    myChart = new Chart(ctx, {
-      type: "LineWithLine",
-      data,
-      //legend: { display: false },
-      options: {
-        tooltips: {
-          enabled: false,
-          intersect:false,
+    // @ts-ignore
+    chart = Highcharts.chart('container', {
+      chart: {
+        type: 'area',
+        events: {
+          load: function () {
+            this.container.addEventListener('click', mouseUpEvent);
+            this.container.addEventListener('touchend', mouseUpEvent);
+          }
         },
-        events :['mousemove', 'mouseout', 'touchstart', 'touchmove'],
-        hover: {
-          mode: 'x',
-          intersect: false
-       },
-        onHover: function(event, array = []) {
-          //alert(array);
-          if (array?.length) {
-            //console.log('In',event.x);
-            var activeElement = array[0];
-            if ("_index" in activeElement) {
-              const index = activeElement["_index"];
-              const model = activeElement["_model"];
-              const xPosition = model["x"];
-              //console.log("activeElement array ", model["x"]);
-              //console.log(index, xPosition);
-              updateHeader({ index, xPosition });
+      },
+
+      title: {
+        text: ''
+      },
+      subtitle: {
+        text: ''
+      },
+      xAxis: {
+        crosshair: {
+          width: 2,
+          color: '#002BEB',
+        },
+        allowDecimals: false,
+        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        accessibility: {
+          rangeDescription: 'Range: 1940 to 2017.'
+        }
+      },
+      yAxis: {
+        title: {
+          text: 'Nuclear weapon states'
+        },
+        labels: {
+          formatter: function () {
+            // @ts-ignore
+            return this.value;
+          }
+        }
+      },
+      tooltip: {
+        shared: true,
+        outside: true,
+        useHTML: true,
+        animation: false,
+        hideDelay: 0,
+        pointFormatter: function () {
+          return '<div>Hello World</div>';
+        },
+        positioner: function (labelHeight, labelWidth, value) {
+          const { plotX } = value;
+          return {
+            x: plotX,
+            y: this.chart.plotHeight - 50,
+          }
+        }
+      },
+      plotOptions: {
+        area: {
+          pointStart: 1940,
+          marker: {
+            enabled: false,
+            symbol: 'circle',
+            radius: 2,
+            states: {
+              hover: {
+                enabled: true
+              }
             }
           }
-          if(event.type ==='mouseout'){
-            updateHeader({ index:0, xPosition :0});
+        },
+      },
+      series: [{
+        name: 'USA',
+        data: [0, 29.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4],
+        events: {
+          legendItemClick: function () {
+            return false;
           }
-        }
-        
+        },
+        color: '#00B3F0',
+      }],
+      credits: {
+        enabled: false
       }
     });
-    //canvasref.current.addEventListener("mousemove", handleMove);
-  }, []);
-
-  
-  const updateHeader = (param:any) => {
-    const { index, xPosition } = param;
-    const value = data?.datasets[0].data[index];
-    console.log("updateHeader", value,xPosition);
-    setTooltipValue({ value: value.toString(), x: xPosition });
   };
 
+
+  const renderPieChart = () => {
+    let chart: any = null;
+    let selectedFlag = false;
+    const data = [
+      {
+        name: 'Chrome',
+        y: 61.41,
+      }, {
+        name: 'Internet Explorer',
+        y: 11.84
+      }, {
+        name: 'Firefox',
+        y: 10.85
+      }, {
+        name: 'Edge',
+        y: 4.67
+      }, {
+        name: 'Safari',
+        y: 4.18
+      }, {
+        name: 'Other',
+        y: 7.05
+      }
+    ];
+
+
+
+    function fadeData() {
+      // @ts-ignore
+      const currentData = this;
+      let options = { name: '', y: '' };
+      // @ts-ignore
+      this.series.data.forEach(function (data) {
+        if (currentData.id !== data.id) {
+          data.update({ opacity: 0.2 }, false);
+        } else {
+          options = data.options;
+          data.update({ opacity: 1 }, false);
+        }
+      });
+
+      // @ts-ignore
+      this.series.chart.update({
+        title: {
+          text: `${options.name} - ${options.y}`,
+          align: 'center',
+          verticalAlign: 'middle',
+        }
+      });
+      selectedFlag = true;
+      // @ts-ignore
+      this.series.chart.redraw();
+    }
+
+    // @ts-ignore
+    chart = Highcharts.chart({
+      chart: {
+        type: 'pie',
+        renderTo: 'pie-container',
+      },
+      title: {
+        text: '2020',
+        align: 'center',
+        verticalAlign: 'middle',
+      },
+      tooltip: {
+        enabled: false
+      },
+      plotOptions: {
+        pie: {
+          innerSize: '60%',
+          allowPointSelect: true,
+          cursor: 'pointer',
+          slicedOffset: 0,
+          colors: ['#613F75', '#EF798A', '#011638', '#DD9787', '#74D3AE', 'aqua'],
+          dataLabels: {
+            enabled: false
+          },
+          showInLegend: true
+        },
+        series: {
+          states: {
+            hover: {
+              enabled: false,
+            }
+          },
+          events: {
+            click: function () {
+              if (selectedFlag && this) {
+                this.data.forEach(function (data: any) {
+                  data.update({ opacity: 1 }, false);
+                });
+
+                this.chart.update({
+                  title: {
+                    text: `reset`,
+                    align: 'center',
+                    verticalAlign: 'middle',
+                  }
+                });
+
+                this.chart.redraw();
+                selectedFlag = false;
+              }
+            }
+          }
+        }
+      },
+      // @ts-ignore
+      series: [{
+        data: data,
+        allowPointSelect: true,
+        point: {
+          events: {
+            select: fadeData,
+          }
+        },
+      }],
+      credits: {
+        enabled: false
+      }
+    });
+  }
+
+
+  useEffect(() => {
+    renderBarAreaChart();
+    renderPieChart();
+  }, []);
+
   return (
-    <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle>rrrrrrr</IonTitle>
-        </IonToolbar>
-      </IonHeader>
-      <IonContent>
-        {tooltipValue?.value ? (
-          <div className="tooltip-container">
-            <div className="batch">{tooltipValue?.value}</div>
-            <div className="batch-value">
-              <span
-                className="batch-text"
-                style={{
-                  left:
-                    tooltipValue.x > 10 ? tooltipValue.x - 15 : tooltipValue.x
-                }}
-              >
-                {tooltipValue?.x.toFixed(2)}
-              </span>
-            </div>
-          </div>
-        ) : (
-          <div>Custom Nav </div>
-        )}
-        <div
-          className="chart-container"
-          style={{ position: "relative", height: "40vh", width: " 80vw" }}
-        >
-          <canvas ref={canvasref} id="myChart" />
+
+    <IonApp>
+      <IonPage>
+        <div style={{ height: '90vh' }}>
+          <div style={{ height: '300px', backgroundColor: 'red' }}>Header</div>
+          <div id="container" />
+          <div id="pie-container" />
+          <div style={{ height: '300px', backgroundColor: 'green' }}>Footer</div>
         </div>
-      </IonContent>
-    </IonPage>
+      </IonPage>
+    </IonApp>
   );
 };
 
